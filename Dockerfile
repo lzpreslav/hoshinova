@@ -1,11 +1,11 @@
 # Cache dependencies
-FROM node:16 as web-deps
+FROM node:20 as web-deps
 WORKDIR /src/web
 COPY web/package.json web/yarn.lock ./
 RUN yarn install --frozen-lockfile
 
 # Create base image for building Rust
-FROM rust:1.62-alpine AS rust-build-image
+FROM rust:1.80-alpine AS rust-build-image
 RUN apk add --no-cache musl-dev git
 
 # Cache dependencies
@@ -28,7 +28,7 @@ RUN set -ex; \
     cargo test
 
 # Build the web app
-FROM node:16 AS web-builder
+FROM node:20 AS web-builder
 WORKDIR /src/web
 COPY web .
 COPY --from=web-deps /src/web/node_modules /src/web/node_modules
@@ -46,7 +46,7 @@ RUN touch src/main.rs && \
     cargo build --locked --release --target x86_64-unknown-linux-musl
 
 # Build ytarchive
-FROM golang:1.20-alpine AS ytarchive-builder
+FROM golang:1.19-alpine AS ytarchive-builder
 WORKDIR /src
 RUN set -ex; \
     apk add --no-cache git; \
@@ -55,7 +55,7 @@ RUN set -ex; \
     git checkout v0.3.2; \
     go build .
 
-FROM alpine AS runner
+FROM alpine:3.20.1 AS runner
 WORKDIR /app
 RUN apk add --no-cache ffmpeg
 COPY --from=ytarchive-builder /src/ytarchive/ytarchive /usr/local/bin/ytarchive
