@@ -5,6 +5,9 @@ edition = "2021"
 repository = "https://github.com/HoloArchivists/hoshinova"
 homepage = "https://github.com/HoloArchivists/hoshinova"
 
+[package.metadata.cross.target.x86_64-pc-windows-gnu]
+image = "ghcr.io/cross-rs/x86_64-pc-windows-gnu:edge"
+
 [dependencies]
 # Async
 async-trait = "0.1"
@@ -22,7 +25,7 @@ mime_guess = "2"
 anyhow = "1.0"
 lazy_static = "1.4.0"
 rust-embed = "6.4.0"
-ts-rs = { version = "6.1", features = ["chrono-impl"] }
+ts-rs = { version = "9.0.1", features = ["chrono-impl", "no-serde-warnings"] }
 url = "2.2.2"
 
 # Serde

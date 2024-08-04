@@ -1,5 +1,10 @@
+.github
+build.sh
+Dockerfile
+README.md
 target
 temp
 videos
+web/dist
 web/node_modules
-Dockerfile
+web/src/bindings

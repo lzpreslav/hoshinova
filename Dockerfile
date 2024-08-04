@@ -1,5 +1,5 @@
 # Cache dependencies
-FROM node:20 as web-deps
+FROM node:20 AS web-deps
 WORKDIR /src/web
 COPY web/package.json web/yarn.lock ./
 RUN yarn install --frozen-lockfile

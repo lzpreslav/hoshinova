@@ -45,7 +45,7 @@ async fn get_tasks(data: TaskMap) -> actix_web::Result<impl Responder> {
 }
 
 #[derive(Deserialize, TS)]
-#[ts(export, export_to = "web/src/bindings/")]
+#[ts(export)]
 struct CreateTaskRequest {
     video_url: String,
     output_directory: String,
@@ -74,7 +74,7 @@ async fn post_task(
 
     // Get the best thumbnail
     let mut thumbs = ipr.video_details.thumbnail.thumbnails;
-    thumbs.sort_by_key(|t| t.width);
+    thumbs.sort_by_key(|t| (t.width, t.height));
     let best_thumb = thumbs.last().map(|t| t.url.clone()).unwrap_or("".into());
 
     // Fetch the channel image

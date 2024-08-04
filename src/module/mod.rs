@@ -13,7 +13,7 @@ pub mod scraper;
 pub mod web;
 
 #[derive(Debug, Clone, TS)]
-#[ts(export, export_to = "web/src/bindings/")]
+#[ts(export)]
 pub enum Message {
     ToRecord(Task),
     ToNotify(Notification),
@@ -21,7 +21,7 @@ pub enum Message {
 }
 
 #[derive(Debug, Clone, TS, Serialize, Deserialize)]
-#[ts(export, export_to = "web/src/bindings/")]
+#[ts(export)]
 pub struct Task {
     pub title: String,
     pub video_id: String,
@@ -33,21 +33,21 @@ pub struct Task {
 }
 
 #[derive(Debug, Clone, TS)]
-#[ts(export, export_to = "web/src/bindings/")]
+#[ts(export)]
 pub struct Notification {
     pub task: Task,
     pub status: TaskStatus,
 }
 
 #[derive(Debug, Clone, TS)]
-#[ts(export, export_to = "web/src/bindings/")]
+#[ts(export)]
 pub struct RecordingStatus {
     pub task: Task,
     pub status: YTAStatus,
 }
 
 #[derive(Debug, Clone, PartialEq, TS)]
-#[ts(export, export_to = "web/src/bindings/")]
+#[ts(export)]
 pub enum TaskStatus {
     Waiting,
     Recording,

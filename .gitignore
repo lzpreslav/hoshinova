@@ -1,5 +1,6 @@
+# Local development
 .idea
-
+/config.toml
 /target
-
-config.toml
+temp
+videos

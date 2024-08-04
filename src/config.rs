@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 #[derive(Clone, TS, Serialize, Deserialize, Debug)]
-#[ts(export, export_to = "web/src/bindings/")]
+#[ts(export)]
 pub struct Config {
     pub ytarchive: YtarchiveConfig,
     pub scraper: ScraperConfig,
@@ -18,7 +18,7 @@ pub struct Config {
 }
 
 #[derive(Clone, TS, Serialize, Deserialize, Debug)]
-#[ts(export, export_to = "web/src/bindings/")]
+#[ts(export)]
 pub struct YtarchiveConfig {
     pub executable_path: String,
     pub working_directory: String,
@@ -35,13 +35,13 @@ fn default_delay_start() -> std::time::Duration {
 }
 
 #[derive(Clone, TS, Serialize, Deserialize, Debug)]
-#[ts(export, export_to = "web/src/bindings/")]
+#[ts(export)]
 pub struct ScraperConfig {
     pub rss: ScraperRSSConfig,
 }
 
 #[derive(Clone, TS, Serialize, Deserialize, Debug)]
-#[ts(export, export_to = "web/src/bindings/")]
+#[ts(export)]
 pub struct ScraperRSSConfig {
     #[serde(with = "humantime_serde")]
     #[ts(type = "string")]
@@ -57,27 +57,27 @@ fn default_ignore_older_than() -> std::time::Duration {
 }
 
 #[derive(Clone, TS, Serialize, Deserialize, Debug)]
-#[ts(export, export_to = "web/src/bindings/")]
+#[ts(export)]
 pub struct NotifierConfig {
     pub discord: Option<NotifierDiscordConfig>,
 }
 
 #[derive(Clone, TS, Serialize, Deserialize, Debug)]
-#[ts(export, export_to = "web/src/bindings/")]
+#[ts(export)]
 pub struct NotifierDiscordConfig {
     pub webhook_url: String,
     pub notify_on: Vec<TaskStatus>,
 }
 
 #[derive(Clone, TS, Serialize, Deserialize, Debug)]
-#[ts(export, export_to = "web/src/bindings/")]
+#[ts(export)]
 pub struct WebserverConfig {
     pub bind_address: Option<String>,
     pub unix_path: Option<String>,
 }
 
 #[derive(Clone, TS, Serialize, Deserialize, Debug)]
-#[ts(export, export_to = "web/src/bindings/")]
+#[ts(export)]
 pub struct ChannelConfig {
     pub id: String,
     pub name: String,

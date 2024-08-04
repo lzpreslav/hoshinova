@@ -378,7 +378,7 @@ impl Module for YTArchive {
 
 /// The current state of ytarchive.
 #[derive(Debug, Clone, TS, Serialize)]
-#[ts(export, export_to = "web/src/bindings/")]
+#[ts(export)]
 pub struct YTAStatus {
     version: Option<String>,
     state: YTAState,
@@ -392,7 +392,7 @@ pub struct YTAStatus {
 }
 
 #[derive(Debug, Clone, PartialEq, TS, Serialize)]
-#[ts(export, export_to = "web/src/bindings/")]
+#[ts(export)]
 pub enum YTAState {
     Idle,
     Waiting(Option<DateTime<Utc>>),
