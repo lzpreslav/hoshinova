@@ -4,6 +4,7 @@ use crate::module::Module;
 use crate::msgbus::MessageBus;
 use anyhow::{anyhow, Result};
 use clap::Parser;
+use env_logger::Builder;
 use std::{process::Command, sync::Arc};
 use tokio::sync::RwLock;
 
@@ -75,7 +76,9 @@ fn test_ytarchive(path: &str) -> Result<String> {
 #[tokio::main]
 async fn main() -> Result<()> {
     // Initialize logging
-    env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
+    Builder::from_env(env_logger::Env::default().default_filter_or("info"))
+        .target(env_logger::Target::Stdout)
+        .init();
     info!("{}", APP_NAME);
     debug!("Git hash: {}", env!("GIT_HASH"));
     debug!("Built on: {}", env!("BUILD_TIME"));
