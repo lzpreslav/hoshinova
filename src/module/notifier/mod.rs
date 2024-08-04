@@ -6,10 +6,12 @@ use async_trait::async_trait;
 use std::sync::Arc;
 use tokio::sync::{mpsc, RwLock};
 
-// Import the Discord notifier
+// Import the Discord and Slack notifiers
 mod discord_notifier;
+mod slack_notifier;
 
 pub use discord_notifier::Discord;
+pub use slack_notifier::Slack;
 
 #[async_trait]
 pub trait Notifier: Send + Sync {
@@ -23,9 +25,10 @@ pub struct NotificationSystem {
 impl NotificationSystem {
     pub fn new(config: Arc<RwLock<Config>>) -> Self {
         let discord = Box::new(Discord::new(config.clone())) as Box<dyn Notifier>;
+        let slack = Box::new(Slack::new(config.clone())) as Box<dyn Notifier>;
 
         Self {
-            notifiers: vec![discord],
+            notifiers: vec![discord, slack],
         }
     }
 

@@ -24,6 +24,10 @@ ignore_older_than = "24h"
 webhook_url = "https://discordapp.com/api/webhooks/123456789012345678/abcdefghijklmnopqrstuvwxyz"
 notify_on = ["waiting", "recording", "done", "failed"]
 
+[notifier.slack]
+webhook_url = "https://hooks.slack.com/services/1q2w3e4r5t6/y7u8i9o0pas/Tg6ECN6EAjiYkR3A6SHCDCJN"
+notify_on = ["waiting", "recording", "done", "failed"]
+
 # A web interface to view and manage tasks.
 # Optional, remove this section to disable.
 [webserver]

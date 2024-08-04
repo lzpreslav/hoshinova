@@ -146,16 +146,20 @@ videos and don't want to hit rate limits during startup.
 
 ```toml
 [notifier.discord]
-webhook_url = "https://discordapp.com/api/webhooks/123456789012345678/abcdefghijklmnopqrstuvwxyz"
+webhook_url = "webhook_address"
+notify_on = ["waiting", "recording", "done", "failed"]
+
+[notifier.slack]
+webhook_url = "webhook_address"
 notify_on = ["waiting", "recording", "done", "failed"]
 ```
 
 This part is optional. You can remove this section if you don't want any
 notifications.
 
-Right now you can only send notifications to Discord. You can get the
-`webhook_url` by following
-[these instructions](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks).
+Right now you can send notifications to Discord and/or Slack. You can get the Discord `webhook_url` by following
+[these instructions](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) and the Slack one
+by following [these ones](https://api.slack.com/messaging/webhooks).
 The `notify_on` setting lets you specify which events you want to be notified
 about. Right now there are only 4 events:
 

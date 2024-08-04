@@ -60,11 +60,19 @@ fn default_ignore_older_than() -> std::time::Duration {
 #[ts(export)]
 pub struct NotifierConfig {
     pub discord: Option<DiscordConfig>,
+    pub slack: Option<SlackConfig>,
 }
 
 #[derive(Clone, TS, Serialize, Deserialize, Debug)]
 #[ts(export)]
 pub struct DiscordConfig {
+    pub webhook_url: String,
+    pub notify_on: Vec<TaskStatus>,
+}
+
+#[derive(Clone, TS, Serialize, Deserialize, Debug)]
+#[ts(export)]
+pub struct SlackConfig {
     pub webhook_url: String,
     pub notify_on: Vec<TaskStatus>,
 }
