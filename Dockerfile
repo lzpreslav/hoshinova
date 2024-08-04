@@ -46,7 +46,7 @@ RUN touch src/main.rs && \
     cargo build --locked --release --target x86_64-unknown-linux-musl
 
 # Build ytarchive
-FROM golang:1.20-alpine AS ytarchive-builder
+FROM golang:1.19-alpine AS ytarchive-builder
 WORKDIR /src
 RUN set -ex; \
     apk add --no-cache git; \
