@@ -1,5 +1,11 @@
+# Local development artifacts
 target
 temp
 videos
+web/dist
 web/node_modules
+
+# Non-build files
+.github
 Dockerfile
+README.md
