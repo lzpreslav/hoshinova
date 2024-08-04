@@ -22,7 +22,7 @@ pub struct WebServer {
 }
 
 #[derive(Debug, Clone, TS, Serialize)]
-#[ts(export, export_to = "web/src/bindings/")]
+#[ts(export)]
 pub struct TaskWithStatus {
     pub task: Task,
     pub status: YTAStatus,

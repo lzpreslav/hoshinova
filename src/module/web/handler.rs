@@ -45,7 +45,7 @@ async fn get_tasks(data: TaskMap) -> actix_web::Result<impl Responder> {
 }
 
 #[derive(Deserialize, TS)]
-#[ts(export, export_to = "web/src/bindings/")]
+#[ts(export)]
 struct CreateTaskRequest {
     video_url: String,
     output_directory: String,
