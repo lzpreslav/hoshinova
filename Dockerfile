@@ -5,7 +5,7 @@ COPY web/package.json web/yarn.lock ./
 RUN yarn install --frozen-lockfile
 
 # Create base image for building Rust
-FROM rust:1.62-alpine AS rust-build-image
+FROM rust:1.80-alpine AS rust-build-image
 RUN apk add --no-cache musl-dev git
 
 # Cache dependencies
@@ -55,7 +55,7 @@ RUN set -ex; \
     git checkout v0.3.2; \
     go build .
 
-FROM alpine AS runner
+FROM alpine:3.20.1 AS runner
 WORKDIR /app
 RUN apk add --no-cache ffmpeg
 COPY --from=ytarchive-builder /src/ytarchive/ytarchive /usr/local/bin/ytarchive
