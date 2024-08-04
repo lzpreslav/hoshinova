@@ -1,5 +1,5 @@
 # Cache dependencies
-FROM node:16 as web-deps
+FROM node:20 as web-deps
 WORKDIR /src/web
 COPY web/package.json web/yarn.lock ./
 RUN yarn install --frozen-lockfile
@@ -28,7 +28,7 @@ RUN set -ex; \
     cargo test
 
 # Build the web app
-FROM node:16 AS web-builder
+FROM node:20 AS web-builder
 WORKDIR /src/web
 COPY web .
 COPY --from=web-deps /src/web/node_modules /src/web/node_modules
