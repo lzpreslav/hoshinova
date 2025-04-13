@@ -129,6 +129,8 @@ pub struct SlackConfig {
 pub struct WebserverConfig {
     pub bind_address: Option<String>,
     pub unix_path: Option<String>,
+    #[serde(default)]
+    pub restrict_config_api: bool,
 }
 
 impl Default for WebserverConfig {
@@ -136,6 +138,7 @@ impl Default for WebserverConfig {
         WebserverConfig {
             bind_address: None,
             unix_path: None,
+            restrict_config_api: false,
         }
     }
 }
@@ -249,6 +252,7 @@ mod tests {
         let ws = WebserverConfig::default();
         assert!(ws.bind_address.is_none());
         assert!(ws.unix_path.is_none());
+        assert!(!ws.restrict_config_api);
     }
 
     #[test]

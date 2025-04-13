@@ -6,7 +6,7 @@ use crate::{
     youtube,
 };
 use actix_web::{
-    error::{ErrorBadRequest, ErrorInternalServerError},
+    error::{ErrorBadRequest, ErrorInternalServerError, ErrorForbidden},
     get, post, put,
     web::{self, Data},
     HttpResponse, Responder,
@@ -31,6 +31,17 @@ pub fn configure(cfg: &mut actix_web::web::ServiceConfig) {
         .service(put_config_toml)
         .service(reload_config)
         .service(serve_static);
+}
+
+// Return an error if the config API is restricted
+async fn ensure_config_api_allowed(config: &Arc<RwLock<Config>>) -> actix_web::Result<()> {
+    let guard = config.read().await;
+    match &guard.webserver {
+        Some(webserver) if webserver.restrict_config_api => {
+            Err(ErrorForbidden("Access to config API is restricted"))
+        }
+        _ => Ok(()),
+    }
 }
 
 #[get("/api/tasks")]
@@ -111,6 +122,8 @@ async fn get_version() -> actix_web::Result<impl Responder> {
 
 #[get("/api/config")]
 async fn get_config(config: Data<Arc<RwLock<Config>>>) -> actix_web::Result<impl Responder> {
+    ensure_config_api_allowed(&config).await?;
+
     Ok(HttpResponse::Ok().json(config.read().await.to_owned()))
 }
 
@@ -127,6 +140,8 @@ async fn reload_config(config: Data<Arc<RwLock<Config>>>) -> actix_web::Result<i
 
 #[get("/api/config/toml")]
 async fn get_config_toml(config: Data<Arc<RwLock<Config>>>) -> actix_web::Result<impl Responder> {
+    ensure_config_api_allowed(&config).await?;
+
     Ok(HttpResponse::Ok().body(
         config
             .read()
@@ -142,6 +157,8 @@ async fn put_config_toml(
     config: Data<Arc<RwLock<Config>>>,
     body: web::Bytes,
 ) -> actix_web::Result<impl Responder> {
+    ensure_config_api_allowed(&config).await?;
+
     let body = std::str::from_utf8(&body).map_err(|e| ErrorBadRequest(format!("{:?}", e)))?;
     config
         .write()
@@ -178,4 +195,47 @@ async fn serve_static(path: web::Path<String>) -> impl Responder {
             .body(content.data.into_owned()),
         None => HttpResponse::NotFound().body("404 Not Found"),
     };
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::Arc;
+    use tokio::sync::RwLock;
+    use crate::config::WebserverConfig;
+
+    async fn test_ensure_config_api_allowed(
+        config: &Arc<RwLock<Config>>,
+        expected: bool,
+    ) -> actix_web::Result<()> {
+        let result = ensure_config_api_allowed(config).await;
+        if expected {
+            assert!(result.is_ok());
+        } else {
+            assert!(result.is_err());
+        }
+        Ok(())
+    }
+
+    async fn test_config_api_allowed() {
+        let config = Arc::new(RwLock::new(Config::default()));
+
+        let mut config_guard = config.write().await;
+        config_guard.webserver = Some(WebserverConfig {
+            restrict_config_api: false,
+            ..WebserverConfig::default()
+        });
+        drop(config_guard);
+
+        test_ensure_config_api_allowed(&config, true).await.unwrap();
+
+        let mut config_guard = config.write().await;
+        config_guard.webserver = Some(WebserverConfig {
+            restrict_config_api: true,
+            ..WebserverConfig::default()
+        });
+        drop(config_guard);
+
+        test_ensure_config_api_allowed(&config, false).await.unwrap();
+    }
 }
