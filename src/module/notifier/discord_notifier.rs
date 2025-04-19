@@ -1,6 +1,6 @@
 use super::Notifier;
 use crate::{config::Config, module::{Notification, TaskStatus}, APP_NAME, APP_USER_AGENT};
-use anyhow::Result;
+use anyhow::{Result, Context};
 use async_trait::async_trait;
 use reqwest::Client;
 use serde::Serialize;
@@ -54,11 +54,32 @@ impl Discord {
             .expect("Failed to create client");
         Self { config, client }
     }
+
+    async fn get_webhook_url(&self) -> Result<Option<String>> {
+        let cfg = self.config.read().await;
+        let discord_cfg = cfg.notifier.as_ref().and_then(|n| n.discord.as_ref());
+        if let Some(cfg) = discord_cfg {
+            if let Some(file_path) = &cfg.webhook_url_file {
+                let url = tokio::fs::read_to_string(file_path)
+                    .await
+                    .context("Failed to read webhook_url_file")?;
+                return Ok(Some(url.trim().to_string()));
+            }
+            return Ok(cfg.webhook_url.clone());
+        }
+        Ok(None)
+    }
 }
 
 #[async_trait]
 impl Notifier for Discord {
     async fn send_notification(&self, notification: &Notification) -> Result<()> {
+        let webhook_url = self.get_webhook_url().await?;
+        if webhook_url.is_none() {
+            return Ok(()); // Skip if no webhook URL is configured
+        }
+        let webhook_url = webhook_url.unwrap();
+
         let cfg = {
             let cfg = self.config.read().await;
             let not = cfg.notifier.clone();
@@ -104,7 +125,7 @@ impl Notifier for Discord {
 
         let res = self
             .client
-            .post(&cfg.webhook_url)
+            .post(&webhook_url)
             .header("Content-Type", "application/json")
             .json(&message)
             .send()

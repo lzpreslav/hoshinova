@@ -113,14 +113,16 @@ pub struct NotifierConfig {
 #[derive(Clone, TS, Serialize, Deserialize, Debug, PartialEq)]
 #[ts(export)]
 pub struct DiscordConfig {
-    pub webhook_url: String,
+    pub webhook_url: Option<String>,
+    pub webhook_url_file: Option<String>,
     pub notify_on: Vec<TaskStatus>,
 }
 
 #[derive(Clone, TS, Serialize, Deserialize, Debug, PartialEq)]
 #[ts(export)]
 pub struct SlackConfig {
-    pub webhook_url: String,
+    pub webhook_url: Option<String>,
+    pub webhook_url_file: Option<String>,
     pub notify_on: Vec<TaskStatus>,
 }
 
