@@ -6,7 +6,7 @@ use crate::{
     youtube,
 };
 use actix_web::{
-    error::{ErrorBadRequest, ErrorInternalServerError},
+    error::{ErrorBadRequest, ErrorInternalServerError, ErrorForbidden},
     get, post, put,
     web::{self, Data},
     HttpResponse, Responder,
@@ -142,6 +142,15 @@ async fn put_config_toml(
     config: Data<Arc<RwLock<Config>>>,
     body: web::Bytes,
 ) -> actix_web::Result<impl Responder> {
+    {
+        let guard = config.read().await;
+        if let Some(webserver) = &guard.webserver {
+            if !webserver.allow_config_edit {
+                return Err(ErrorForbidden("Editing the config file is not allowed"));
+            }
+        }
+    }
+
     let body = std::str::from_utf8(&body).map_err(|e| ErrorBadRequest(format!("{:?}", e)))?;
     config
         .write()
@@ -178,4 +187,65 @@ async fn serve_static(path: web::Path<String>) -> impl Responder {
             .body(content.data.into_owned()),
         None => HttpResponse::NotFound().body("404 Not Found"),
     };
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use actix_web::{test, App};
+    use std::sync::Arc;
+    use tokio::sync::RwLock;
+    use crate::config::WebserverConfig;
+
+    #[actix_web::test]
+    async fn test_put_config_toml_invalid() {
+        let config = Arc::new(RwLock::new(Config::default()));
+        let app = test::init_service(
+            App::new()
+                .app_data(Data::new(config.clone()))
+                .service(put_config_toml),
+        )
+        .await;
+
+        let mut config_guard = config.write().await;
+        config_guard.webserver = Some(WebserverConfig {
+            allow_config_edit: true,
+            ..WebserverConfig::default()
+        });
+        drop(config_guard);
+
+        let req = test::TestRequest::put()
+            .uri("/api/config/toml")
+            .set_payload("test")
+            .to_request();
+        let resp = test::call_service(&app, req).await;
+
+        assert_eq!(resp.status(), 400); // Invalid config file, but API is allowed
+    }
+
+    #[actix_web::test]
+    async fn test_put_config_toml_forbidden() {
+        let config = Arc::new(RwLock::new(Config::default()));
+        let app = test::init_service(
+            App::new()
+                .app_data(Data::new(config.clone()))
+                .service(put_config_toml),
+        )
+        .await;
+
+        let mut config_guard = config.write().await;
+        config_guard.webserver = Some(WebserverConfig {
+            allow_config_edit: false,
+            ..WebserverConfig::default()
+        });
+        drop(config_guard);
+
+        let req = test::TestRequest::put()
+            .uri("/api/config/toml")
+            .set_payload("test")
+            .to_request();
+        let resp = test::call_service(&app, req).await;
+
+        assert_eq!(resp.status(), 403);
+    }
 }

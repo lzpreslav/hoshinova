@@ -34,6 +34,8 @@ notify_on = ["waiting", "recording", "done", "failed"]
 bind_address = "0.0.0.0:1104"
 # Path to a unix socket to listen on instead of / in addition to a TCP port.
 # unix_path = "/tmp/hoshinova.sock"
+# Allow editing the config file through the API, can be disabled for extra security
+allow_config_edit = true
 
 [[channel]]
 id = "UCP0BspO_AMEe3aQqqpo89Dg"

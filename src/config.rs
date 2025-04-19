@@ -129,6 +129,12 @@ pub struct SlackConfig {
 pub struct WebserverConfig {
     pub bind_address: Option<String>,
     pub unix_path: Option<String>,
+    #[serde(default = "default_as_true")]
+    pub allow_config_edit: bool,
+}
+
+fn default_as_true() -> bool {
+    true
 }
 
 impl Default for WebserverConfig {
@@ -136,6 +142,7 @@ impl Default for WebserverConfig {
         WebserverConfig {
             bind_address: None,
             unix_path: None,
+            allow_config_edit: true,
         }
     }
 }
@@ -249,6 +256,7 @@ mod tests {
         let ws = WebserverConfig::default();
         assert!(ws.bind_address.is_none());
         assert!(ws.unix_path.is_none());
+        assert!(ws.allow_config_edit);
     }
 
     #[test]
@@ -352,6 +360,9 @@ mod tests {
             [scraper.rss]
             poll_interval = "10s"
 
+            [webserver]
+            bind_address = "127.0.0.1:1104"
+
             [[channel]]
             id = "123"
             name = "Test Channel"
@@ -363,6 +374,7 @@ mod tests {
 
         assert_eq!(config.ytarchive.delay_start, Duration::from_secs(5));
         assert_eq!(config.scraper.rss.poll_interval, Duration::from_secs(10));
+        assert_eq!(config.webserver.unwrap().allow_config_edit, true);
         assert_eq!(config.channel.len(), 1);
         assert_eq!(config.channel[0].match_description, false);
         assert_eq!(config.notifier, None);
