@@ -1,4 +1,4 @@
-use super::Notifier;
+use super::{Notifier, WebhookNotifier};
 use crate::{config::Config, module::{Notification, TaskStatus}, APP_NAME, APP_USER_AGENT};
 use anyhow::Result;
 use async_trait::async_trait;
@@ -57,6 +57,11 @@ impl Discord {
 }
 
 #[async_trait]
+impl WebhookNotifier for Discord {
+    type Config = crate::config::DiscordConfig;
+}
+
+#[async_trait]
 impl Notifier for Discord {
     async fn send_notification(&self, notification: &Notification) -> Result<()> {
         let cfg = {
@@ -72,6 +77,8 @@ impl Notifier for Discord {
             debug!("Not notifying on status {:?}", notification.status);
             return Ok(());
         }
+
+        let webhook_url = Self::get_webhook_url(&cfg).await?;
 
         let (title, color) = match notification.status {
             TaskStatus::Waiting => ("Waiting for Live", 0xebd045),
@@ -104,7 +111,7 @@ impl Notifier for Discord {
 
         let res = self
             .client
-            .post(&cfg.webhook_url)
+            .post(&webhook_url)
             .header("Content-Type", "application/json")
             .json(&message)
             .send()

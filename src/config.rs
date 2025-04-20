@@ -1,4 +1,4 @@
-use crate::module::TaskStatus;
+use crate::module::{notifier::HasWebhookUrl, TaskStatus};
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
@@ -110,18 +110,70 @@ pub struct NotifierConfig {
     pub slack: Option<SlackConfig>,
 }
 
+impl NotifierConfig {
+    pub fn validate(&self) -> Result<(), String> {
+        if let Some(discord) = &self.discord {
+            discord.validate()?;
+        }
+        if let Some(slack) = &self.slack {
+            slack.validate()?;
+        }
+        Ok(())
+    }
+}
+
 #[derive(Clone, TS, Serialize, Deserialize, Debug, PartialEq)]
 #[ts(export)]
 pub struct DiscordConfig {
-    pub webhook_url: String,
+    pub webhook_url: Option<String>,
+    pub webhook_url_file: Option<String>,
     pub notify_on: Vec<TaskStatus>,
+}
+
+impl DiscordConfig {
+    pub fn validate(&self) -> Result<(), String> {
+        if self.webhook_url.is_none() && self.webhook_url_file.is_none() {
+            return Err("Either webhook_url or webhook_url_file must be set for the Discord notifier config".to_string());
+        }
+        Ok(())
+    }
+}
+
+impl HasWebhookUrl for DiscordConfig {
+    fn webhook_url(&self) -> Option<&String> {
+        self.webhook_url.as_ref()
+    }
+
+    fn webhook_url_file(&self) -> Option<&String> {
+        self.webhook_url_file.as_ref()
+    }
 }
 
 #[derive(Clone, TS, Serialize, Deserialize, Debug, PartialEq)]
 #[ts(export)]
 pub struct SlackConfig {
-    pub webhook_url: String,
+    pub webhook_url: Option<String>,
+    pub webhook_url_file: Option<String>,
     pub notify_on: Vec<TaskStatus>,
+}
+
+impl SlackConfig {
+    pub fn validate(&self) -> Result<(), String> {
+        if self.webhook_url.is_none() && self.webhook_url_file.is_none() {
+            return Err("Either webhook_url or webhook_url_file must be set for the Slack notifier config".to_string());
+        }
+        Ok(())
+    }
+}
+
+impl HasWebhookUrl for SlackConfig {
+    fn webhook_url(&self) -> Option<&String> {
+        self.webhook_url.as_ref()
+    }
+
+    fn webhook_url_file(&self) -> Option<&String> {
+        self.webhook_url_file.as_ref()
+    }
 }
 
 #[derive(Clone, TS, Serialize, Deserialize, Debug)]
@@ -179,6 +231,11 @@ pub async fn load_config(path: &str) -> Result<Config> {
     let config = tokio::fs::read_to_string(path).await?;
     let mut config: Config = toml::from_str(&config)?;
     config.config_path = path.to_string();
+
+    if let Some(notifier) = &config.notifier {
+        notifier.validate().map_err(|e| anyhow::anyhow!(e))?;
+    }
+
     Ok(config)
 }
 
@@ -294,10 +351,72 @@ mod tests {
     }
 
     #[test]
-    fn test_notifier_with_only_discord() {
+    fn test_discord_config_validation() {
+        let cfg = DiscordConfig {
+            webhook_url: Some("https://discord.example.com".to_string()),
+            webhook_url_file: None,
+            notify_on: vec![],
+        };
+        assert!(cfg.validate().is_ok());
+
+        let cfg = DiscordConfig {
+            webhook_url: None,
+            webhook_url_file: Some("/path/to/webhook.txt".to_string()),
+            notify_on: vec![],
+        };
+        assert!(cfg.validate().is_ok());
+
+        let cfg = DiscordConfig {
+            webhook_url: Some("https://discord.example.com".to_string()),
+            webhook_url_file: Some("/path/to/webhook.txt".to_string()),
+            notify_on: vec![],
+        };
+        assert!(cfg.validate().is_ok());
+
+        let cfg = DiscordConfig {
+            webhook_url: None,
+            webhook_url_file: None,
+            notify_on: vec![],
+        };
+        assert!(cfg.validate().is_err());
+    }
+
+    #[test]
+    fn test_slack_config_validation() {
+        let cfg = SlackConfig {
+            webhook_url: Some("https://slack.example.com".to_string()),
+            webhook_url_file: None,
+            notify_on: vec![],
+        };
+        assert!(cfg.validate().is_ok());
+
+        let cfg = SlackConfig {
+            webhook_url: None,
+            webhook_url_file: Some("/path/to/webhook.txt".to_string()),
+            notify_on: vec![],
+        };
+        assert!(cfg.validate().is_ok());
+
+        let cfg = SlackConfig {
+            webhook_url: Some("https://slack.example.com".to_string()),
+            webhook_url_file: Some("/path/to/webhook.txt".to_string()),
+            notify_on: vec![],
+        };
+        assert!(cfg.validate().is_ok());
+
+        let cfg = SlackConfig {
+            webhook_url: None,
+            webhook_url_file: None,
+            notify_on: vec![],
+        };
+        assert!(cfg.validate().is_err());
+    }
+
+    #[test]
+    fn test_deserialize_notifier_config() {
         let toml_str = r#"
             [notifier.discord]
-            webhook_url = "http://discord.example.com"
+            webhook_url = "https://discord.example.com"
             notify_on = ["recording"]
         "#;
 
@@ -305,6 +424,42 @@ mod tests {
         assert!(config.notifier.is_some());
         assert!(config.notifier.as_ref().unwrap().discord.is_some());
         assert!(config.notifier.as_ref().unwrap().slack.is_none());
+        let discord = config.notifier.unwrap().discord.unwrap();
+        assert_eq!(discord.webhook_url, Some("https://discord.example.com".to_string()));
+        assert_eq!(discord.webhook_url_file, None);
+
+        let toml_str = r#"
+            [notifier.discord]
+            webhook_url_file = "/path/to/webhook.txt"
+            notify_on = ["recording"]
+        "#;
+        let config: Config = toml::from_str(toml_str).unwrap();
+        let discord = config.notifier.unwrap().discord.unwrap();
+        assert_eq!(discord.webhook_url, None);
+        assert_eq!(discord.webhook_url_file, Some("/path/to/webhook.txt".to_string()));
+
+        let toml_str = r#"
+            [notifier.slack]
+            webhook_url = "https://slack.example.com"
+            notify_on = ["recording"]
+        "#;
+        let config: Config = toml::from_str(toml_str).unwrap();
+        assert!(config.notifier.is_some());
+        assert!(config.notifier.as_ref().unwrap().discord.is_none());
+        assert!(config.notifier.as_ref().unwrap().slack.is_some());
+        let slack = config.notifier.unwrap().slack.unwrap();
+        assert_eq!(slack.webhook_url, Some("https://slack.example.com".to_string()));
+        assert_eq!(slack.webhook_url_file, None);
+
+        let toml_str = r#"
+            [notifier.slack]
+            webhook_url_file = "/path/to/webhook.txt"
+            notify_on = ["recording"]
+        "#;
+        let config: Config = toml::from_str(toml_str).unwrap();
+        let slack = config.notifier.unwrap().slack.unwrap();
+        assert_eq!(slack.webhook_url, None);
+        assert_eq!(slack.webhook_url_file, Some("/path/to/webhook.txt".to_string()));
     }
 
     #[test]

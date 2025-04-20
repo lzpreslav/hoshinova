@@ -1,7 +1,7 @@
 use super::{Message, Notification};
 use crate::msgbus::BusTx;
 use crate::config::Config;
-use anyhow::Result;
+use anyhow::{Context, Result};
 use async_trait::async_trait;
 use std::sync::Arc;
 use tokio::sync::{mpsc, RwLock};
@@ -16,6 +16,34 @@ pub use slack_notifier::Slack;
 #[async_trait]
 pub trait Notifier: Send + Sync {
     async fn send_notification(&self, notification: &Notification) -> Result<()>;
+}
+
+/// A trait for notifiers that use webhooks for sending notifications.
+#[async_trait]
+pub trait WebhookNotifier: Notifier {
+    type Config: HasWebhookUrl + Sync;
+
+    /// Gets the webhook URL from either the URL option or from a file, prioritizing the file option
+    async fn get_webhook_url(cfg: &Self::Config) -> Result<String> {
+        if let Some(file) = cfg.webhook_url_file() {
+            let url = tokio::fs::read_to_string(file)
+                .await
+                .with_context(|| format!("Failed to read webhook URL from file: {}", file))?;
+            return Ok(url.trim().to_string());
+        }
+
+        if let Some(url) = cfg.webhook_url() {
+            return Ok(url.clone());
+        }
+
+        Err(anyhow::anyhow!("No webhook URL configured"))
+    }
+}
+
+/// A trait for config types that contain webhook URL fields
+pub trait HasWebhookUrl {
+    fn webhook_url(&self) -> Option<&String>;
+    fn webhook_url_file(&self) -> Option<&String>;
 }
 
 pub struct NotificationSystem {
@@ -45,5 +73,82 @@ impl NotificationSystem {
         }
 
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::NamedTempFile;
+    use std::io::Write;
+
+    #[derive(Debug)]
+    struct TestConfig {
+        webhook_url: Option<String>,
+        webhook_url_file: Option<String>,
+    }
+
+    impl HasWebhookUrl for TestConfig {
+        fn webhook_url_file(&self) -> Option<&String> {
+            self.webhook_url_file.as_ref()
+        }
+
+        fn webhook_url(&self) -> Option<&String> {
+            self.webhook_url.as_ref()
+        }
+    }
+
+    struct TestNotifier;
+
+    #[async_trait]
+    impl Notifier for TestNotifier {
+        async fn send_notification(&self, _notification: &Notification) -> Result<()> {
+            Ok(())
+        }
+    }
+
+    #[async_trait]
+    impl WebhookNotifier for TestNotifier {
+        type Config = TestConfig;
+    }
+
+    #[tokio::test]
+    async fn test_webhook_notifier_trait() {
+        let cfg = TestConfig {
+            webhook_url: Some("https://example.com/from_string".to_string()),
+            webhook_url_file: None,
+        };
+        assert_eq!(
+            TestNotifier::get_webhook_url(&cfg).await.unwrap(),
+            "https://example.com/from_string"
+        );
+
+        let mut file = NamedTempFile::new().unwrap();
+        writeln!(file, "https://example.com/from_file").unwrap();
+        let cfg = TestConfig {
+            webhook_url: None,
+            webhook_url_file: Some(file.path().to_str().unwrap().to_string()),
+        };
+        assert_eq!(
+            TestNotifier::get_webhook_url(&cfg).await.unwrap(),
+            "https://example.com/from_file"
+        );
+
+        let mut file = NamedTempFile::new().unwrap();
+        writeln!(file, "https://example.com/from_file").unwrap();
+        let cfg = TestConfig {
+            webhook_url: Some("https://example.com/from_string".to_string()),
+            webhook_url_file: Some(file.path().to_str().unwrap().to_string()),
+        };
+        assert_eq!(
+            TestNotifier::get_webhook_url(&cfg).await.unwrap(),
+            "https://example.com/from_file"
+        );
+
+        let cfg = TestConfig {
+            webhook_url: None,
+            webhook_url_file: None,
+        };
+        assert!(TestNotifier::get_webhook_url(&cfg).await.is_err());
     }
 }

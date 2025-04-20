@@ -159,7 +159,9 @@ notifications.
 
 Right now you can send notifications to Discord and/or Slack. You can get the Discord `webhook_url` by following
 [these instructions](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks) and the Slack one
-by following [these ones](https://api.slack.com/messaging/webhooks).
+by following [these ones](https://api.slack.com/messaging/webhooks). You could also use `webhook_url_file` instead
+so that the secret URL can be kept outside of the config file (which is visible and editable through the API).
+Please note that when both are set, `webhook_url_file` is prioritized.
 The `notify_on` setting lets you specify which events you want to be notified
 about. Right now there are only 4 events:
 
