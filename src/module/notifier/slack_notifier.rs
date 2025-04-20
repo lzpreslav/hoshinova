@@ -1,4 +1,4 @@
-use super::Notifier;
+use super::{Notifier, WebhookNotifier};
 use crate::{config::Config, module::{Notification, TaskStatus}, APP_USER_AGENT};
 use anyhow::Result;
 use async_trait::async_trait;
@@ -39,6 +39,11 @@ impl Slack {
 }
 
 #[async_trait]
+impl WebhookNotifier for Slack {
+    type Config = crate::config::SlackConfig;
+}
+
+#[async_trait]
 impl Notifier for Slack {
     async fn send_notification(&self, notification: &Notification) -> Result<()> {
         let cfg = {
@@ -54,6 +59,8 @@ impl Notifier for Slack {
             debug!("Not notifying on status {:?}", notification.status);
             return Ok(());
         }
+
+        let webhook_url = Self::get_webhook_url(&cfg).await?;
 
         let (pretext, color) = match notification.status {
             TaskStatus::Waiting => ("Waiting for Live", "#ebd045"),
@@ -76,7 +83,7 @@ impl Notifier for Slack {
 
         let res = self
             .client
-            .post(&cfg.webhook_url)
+            .post(&webhook_url)
             .header("Content-Type", "application/json")
             .json(&message)
             .send()
