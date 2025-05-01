@@ -1,11 +1,11 @@
 # Cache dependencies
-FROM node:20 AS web-deps
+FROM node:22.15.0-alpine3.20 AS web-deps
 WORKDIR /src/web
 COPY web/package.json web/yarn.lock ./
 RUN yarn install --frozen-lockfile
 
 # Create base image for building Rust
-FROM rust:1.80-alpine AS rust-build-image
+FROM rust:1.81.0-alpine3.20 AS rust-build-image
 RUN apk add --no-cache musl-dev git
 
 # Cache dependencies
@@ -28,7 +28,7 @@ RUN set -ex; \
     cargo test
 
 # Build the web app
-FROM node:20 AS web-builder
+FROM node:22.15.0-alpine3.20 AS web-builder
 WORKDIR /src/web
 COPY web .
 COPY --from=web-deps /src/web/node_modules /src/web/node_modules
