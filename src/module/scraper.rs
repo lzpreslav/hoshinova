@@ -11,6 +11,7 @@ use std::{
     time::Duration,
 };
 use tokio::sync::{mpsc, RwLock};
+use quick_xml::de::from_reader;
 
 pub struct RSS {
     config: Arc<RwLock<config::Config>>,
@@ -48,6 +49,7 @@ struct MediaGroup {
 
 #[derive(Deserialize)]
 struct Thumbnail {
+    #[serde(rename = "@url")]
     url: String,
 }
 
@@ -84,7 +86,7 @@ impl RSS {
             .await
             .context("Failed to fetch RSS feed")?;
         let feed: RSSFeed =
-            quick_xml::de::from_slice(&res.bytes().await.context("Failed to read RSS feed body")?)
+            from_reader(res.bytes().await?.as_ref())
                 .context("Failed to parse RSS feed")?;
 
         // Find matching videos
