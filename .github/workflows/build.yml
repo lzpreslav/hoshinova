@@ -17,7 +17,7 @@ jobs:
         - x86_64-unknown-linux-musl
         - aarch64-unknown-linux-musl
         - aarch64-apple-darwin
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.target == 'aarch64-apple-darwin' && 'macos-latest' || 'ubuntu-latest' }}
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -47,11 +47,11 @@ jobs:
         cache: yarn
         cache-dependency-path: web/yarn.lock
 
-    - uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        target: ${{ matrix.target }}
-        override: true
+    - name: Setup Rust toolchain
+      run: |
+        rustup toolchain install stable
+        rustup default stable
+        rustup target add ${{ matrix.target }}
 
     - name: Generate TypeScript bindings
       uses: actions-rs/cargo@v1
