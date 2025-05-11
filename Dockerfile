@@ -5,7 +5,7 @@ COPY web/package.json web/yarn.lock ./
 RUN yarn install --frozen-lockfile
 
 # Create base image for building Rust
-FROM rust:1.81.0-alpine3.21 AS rust-build-image
+FROM rust:1.86.0-alpine3.21 AS rust-build-image
 RUN apk add --no-cache musl-dev git
 
 # Cache dependencies
