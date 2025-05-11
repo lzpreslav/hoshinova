@@ -3,6 +3,7 @@ use crate::{config, msgbus::BusTx, youtube, APP_USER_AGENT};
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use futures::stream::{self, Stream, StreamExt};
+use quick_xml::de::from_reader;
 use reqwest::Client;
 use serde::Deserialize;
 use std::{
@@ -11,7 +12,6 @@ use std::{
     time::Duration,
 };
 use tokio::sync::{mpsc, RwLock};
-use quick_xml::de::from_reader;
 
 pub struct RSS {
     config: Arc<RwLock<config::Config>>,
@@ -86,8 +86,7 @@ impl RSS {
             .await
             .context("Failed to fetch RSS feed")?;
         let feed: RSSFeed =
-            from_reader(res.bytes().await?.as_ref())
-                .context("Failed to parse RSS feed")?;
+            from_reader(res.bytes().await?.as_ref()).context("Failed to parse RSS feed")?;
 
         // Find matching videos
         let tasks: Vec<Task> = feed

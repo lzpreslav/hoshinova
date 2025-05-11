@@ -1,5 +1,9 @@
 use super::{Notifier, WebhookNotifier};
-use crate::{config::Config, module::{Notification, TaskStatus}, APP_NAME, APP_USER_AGENT};
+use crate::{
+    config::Config,
+    module::{Notification, TaskStatus},
+    APP_NAME, APP_USER_AGENT,
+};
 use anyhow::Result;
 use async_trait::async_trait;
 use reqwest::Client;
@@ -92,11 +96,17 @@ impl Notifier for Discord {
             content: "".into(),
             embeds: vec![DiscordEmbed {
                 title: title.into(),
-                description: format!("[{}](https://youtu.be/{})", notification.task.title, notification.task.video_id),
+                description: format!(
+                    "[{}](https://youtu.be/{})",
+                    notification.task.title, notification.task.video_id
+                ),
                 color,
                 author: DiscordEmbedAuthor {
                     name: notification.task.channel_name.clone(),
-                    url: format!("https://www.youtube.com/channel/{}", notification.task.channel_id),
+                    url: format!(
+                        "https://www.youtube.com/channel/{}",
+                        notification.task.channel_id
+                    ),
                     icon_url: notification.task.channel_picture.clone(),
                 },
                 footer: DiscordEmbedFooter {

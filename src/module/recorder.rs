@@ -499,7 +499,10 @@ impl YTAStatus {
                 .ok()
                 .map(|d| d.into());
             self.state = YTAState::Waiting(date);
-        } else if line.starts_with("Stream is ") || line.starts_with("Waiting for stream") || line.starts_with("Retries:") {
+        } else if line.starts_with("Stream is ")
+            || line.starts_with("Waiting for stream")
+            || line.starts_with("Retries:")
+        {
             self.state = YTAState::Waiting(None);
         } else if line.starts_with("Muxing final file") || line.starts_with("size=") {
             self.state = YTAState::Muxing;

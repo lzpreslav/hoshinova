@@ -160,7 +160,10 @@ pub struct SlackConfig {
 impl SlackConfig {
     pub fn validate(&self) -> Result<(), String> {
         if self.webhook_url.is_none() && self.webhook_url_file.is_none() {
-            return Err("Either webhook_url or webhook_url_file must be set for the Slack notifier config".to_string());
+            return Err(
+                "Either webhook_url or webhook_url_file must be set for the Slack notifier config"
+                    .to_string(),
+            );
         }
         Ok(())
     }
@@ -425,7 +428,10 @@ mod tests {
         assert!(config.notifier.as_ref().unwrap().discord.is_some());
         assert!(config.notifier.as_ref().unwrap().slack.is_none());
         let discord = config.notifier.unwrap().discord.unwrap();
-        assert_eq!(discord.webhook_url, Some("https://discord.example.com".to_string()));
+        assert_eq!(
+            discord.webhook_url,
+            Some("https://discord.example.com".to_string())
+        );
         assert_eq!(discord.webhook_url_file, None);
 
         let toml_str = r#"
@@ -436,7 +442,10 @@ mod tests {
         let config: Config = toml::from_str(toml_str).unwrap();
         let discord = config.notifier.unwrap().discord.unwrap();
         assert_eq!(discord.webhook_url, None);
-        assert_eq!(discord.webhook_url_file, Some("/path/to/webhook.txt".to_string()));
+        assert_eq!(
+            discord.webhook_url_file,
+            Some("/path/to/webhook.txt".to_string())
+        );
 
         let toml_str = r#"
             [notifier.slack]
@@ -448,7 +457,10 @@ mod tests {
         assert!(config.notifier.as_ref().unwrap().discord.is_none());
         assert!(config.notifier.as_ref().unwrap().slack.is_some());
         let slack = config.notifier.unwrap().slack.unwrap();
-        assert_eq!(slack.webhook_url, Some("https://slack.example.com".to_string()));
+        assert_eq!(
+            slack.webhook_url,
+            Some("https://slack.example.com".to_string())
+        );
         assert_eq!(slack.webhook_url_file, None);
 
         let toml_str = r#"
@@ -459,7 +471,10 @@ mod tests {
         let config: Config = toml::from_str(toml_str).unwrap();
         let slack = config.notifier.unwrap().slack.unwrap();
         assert_eq!(slack.webhook_url, None);
-        assert_eq!(slack.webhook_url_file, Some("/path/to/webhook.txt".to_string()));
+        assert_eq!(
+            slack.webhook_url_file,
+            Some("/path/to/webhook.txt".to_string())
+        );
     }
 
     #[test]
@@ -490,7 +505,10 @@ mod tests {
         assert!(channel1.filters[1].is_match("another test"));
         assert_eq!(channel1.outpath, "./downloads1");
         assert_eq!(channel1.match_description, true);
-        assert_eq!(channel1.picture_url, Some("http://example.com/pic1.jpg".to_string()));
+        assert_eq!(
+            channel1.picture_url,
+            Some("http://example.com/pic1.jpg".to_string())
+        );
 
         let channel2 = &config.channel[1];
         assert_eq!(channel2.id, "456");
