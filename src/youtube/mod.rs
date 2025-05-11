@@ -67,32 +67,6 @@ impl URL {
 
         None
     }
-
-    pub fn channel_id(&self) -> Option<String> {
-        let mut segs = self.parsed_uri.path_segments()?;
-
-        match segs.next()? {
-            "channel" => Some(segs.next()?.to_string()),
-            _ => None,
-        }
-    }
-
-    pub fn channel_vanity(&self) -> Option<String> {
-        let mut segs = self.parsed_uri.path_segments()?;
-
-        match segs.next()? {
-            "c" => Some(segs.next()?.to_string()),
-            _ => None,
-        }
-    }
-
-    pub fn playlist_id(&self) -> Option<String> {
-        return self
-            .parsed_uri
-            .query_pairs()
-            .find(|(k, _)| k == "list")
-            .map(|(_, v)| v.to_string());
-    }
 }
 
 impl TryFrom<&str> for URL {
@@ -128,18 +102,6 @@ mod tests {
                 .expect("Should parse")
                 .video_id(),
             Some("8ZdLXELdF9Q".into()),
-        );
-        assert_eq!(
-            URL::parse("https://www.youtube.com/channel/UCjLEmnpCNeisMxy134KPwWw")
-                .expect("Should parse")
-                .channel_id(),
-            Some("UCjLEmnpCNeisMxy134KPwWw".into()),
-        );
-        assert_eq!(
-            URL::parse("https://www.youtube.com/c/loudnessfete")
-                .expect("Should parse")
-                .channel_vanity(),
-            Some("loudnessfete".into()),
         );
     }
 }
