@@ -12,7 +12,7 @@ image = "ghcr.io/cross-rs/x86_64-pc-windows-gnu:edge"
 # Async
 async-trait = "0.1"
 futures = "0.3"
-tokio = { version = "1.44.2", features = ["full"] }
+tokio = { version = "1.45.0", features = ["full"] }
 
 # Web
 actix-web = "4"
