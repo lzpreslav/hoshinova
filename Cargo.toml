@@ -12,7 +12,7 @@ image = "ghcr.io/cross-rs/x86_64-pc-windows-gnu:edge"
 # Async
 async-trait = "0.1"
 futures = "0.3"
-tokio = { version = "1.44.2", features = ["full"] }
+tokio = { version = "1.45.0", features = ["full"] }
 
 # Web
 actix-web = "4"
@@ -40,7 +40,7 @@ serde_regex = "1.1.0"
 serde_json = "1.0"
 
 # CLI
-clap = { version = "3.2.25", features = ["derive"] }
+clap = { version = "4.5.38", features = ["derive"] }
 env_logger = "0.11.8"
 log = "0.4"
 
