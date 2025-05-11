@@ -16,8 +16,9 @@ use serde::Deserialize;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use ts_rs::TS;
+use rust_embed::RustEmbed;
 
-#[derive(rust_embed::RustEmbed)]
+#[derive(RustEmbed)]
 #[folder = "web/dist"]
 struct StaticFiles;
 

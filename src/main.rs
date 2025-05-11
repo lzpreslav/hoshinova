@@ -32,10 +32,10 @@ pub static APP_USER_AGENT: &str = concat!(
 
 /// Garbage ytarchive manager
 #[derive(Parser, Debug)]
-#[clap(author, version, about, long_about = None)]
+#[command(author, version, about, long_about = None)]
 struct Args {
     /// Path to the configuration file
-    #[clap(short, long, value_parser, default_value = "config.toml")]
+    #[arg(short, long, default_value = "config.toml")]
     config: String,
 }
 

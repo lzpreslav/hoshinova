@@ -12,11 +12,11 @@ image = "ghcr.io/cross-rs/x86_64-pc-windows-gnu:edge"
 # Async
 async-trait = "0.1"
 futures = "0.3"
-tokio = { version = "1.44.2", features = ["full"] }
+tokio = { version = "1.45.0", features = ["full"] }
 
 # Web
 actix-web = "4"
-reqwest = { version = "0.11", default-features = false, features = [
+reqwest = { version = "0.12", default-features = false, features = [
   "gzip", "json", "rustls-tls"
 ] }
 mime_guess = "2"
@@ -24,23 +24,23 @@ mime_guess = "2"
 # Utilities
 anyhow = "1.0"
 lazy_static = "1.5.0"
-rust-embed = "6.8.1"
-ts-rs = { version = "9.0.1", features = ["chrono-impl", "no-serde-warnings"] }
+rust-embed = "8.7.1"
+ts-rs = { version = "10.1.0", features = ["chrono-impl", "no-serde-warnings"] }
 url = "2.5.4"
 
 # Serde
 humantime = "2.2.0"
 humantime-serde = "1.1.1"
 serde = { version = "1.0", features = ["derive"] }
-toml = "0.5"
-quick-xml = { version = "0.23", features = ["serialize"] }
+toml = "0.8"
+quick-xml = { version = "0.37", features = ["serialize"] }
 chrono = { version = "0.4.41", features = ["serde"] }
 regex = "1"
 serde_regex = "1.1.0"
 serde_json = "1.0"
 
 # CLI
-clap = { version = "3.2.25", features = ["derive"] }
+clap = { version = "4.5.38", features = ["derive"] }
 env_logger = "0.11.8"
 log = "0.4"
 
