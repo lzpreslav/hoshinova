@@ -20,6 +20,7 @@ use rust_embed::RustEmbed;
 
 #[derive(RustEmbed)]
 #[folder = "web/dist"]
+#[allow(dead_code)]
 struct StaticFiles;
 
 /// Configure routes for the webserver
