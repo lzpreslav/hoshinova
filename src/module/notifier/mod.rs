@@ -1,6 +1,6 @@
 use super::{Message, Notification};
-use crate::msgbus::BusTx;
 use crate::config::Config;
+use crate::msgbus::BusTx;
 use anyhow::{Context, Result};
 use async_trait::async_trait;
 use std::sync::Arc;
@@ -79,8 +79,8 @@ impl NotificationSystem {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempfile::NamedTempFile;
     use std::io::Write;
+    use tempfile::NamedTempFile;
 
     #[derive(Debug)]
     struct TestConfig {

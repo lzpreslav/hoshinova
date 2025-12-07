@@ -1,5 +1,9 @@
 use super::{Notifier, WebhookNotifier};
-use crate::{config::Config, module::{Notification, TaskStatus}, APP_USER_AGENT};
+use crate::{
+    config::Config,
+    module::{Notification, TaskStatus},
+    APP_USER_AGENT,
+};
 use anyhow::Result;
 use async_trait::async_trait;
 use reqwest::Client;
@@ -75,7 +79,11 @@ impl Notifier for Slack {
                 fallback: format!("{} - {}", pretext, notification.task.title),
                 color: color.into(),
                 pretext: pretext.into(),
-                title: format!("{} - {}", notification.task.channel_name, notification.task.title.clone()),
+                title: format!(
+                    "{} - {}",
+                    notification.task.channel_name,
+                    notification.task.title.clone()
+                ),
                 title_link: format!("https://youtu.be/{}", notification.task.video_id),
                 image_url: notification.task.video_picture.clone(),
             }],
