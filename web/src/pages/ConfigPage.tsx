@@ -54,9 +54,7 @@ const ConfigPage = () => {
             title: 'Error updating configuration',
             message,
             color: 'red',
-            styles: (_) => ({
-              description: { whiteSpace: 'pre' },
-            }),
+            styles: { description: { whiteSpace: 'pre' } },
           });
           console.error(err);
         },
@@ -65,15 +63,15 @@ const ConfigPage = () => {
 
   return (
     <Container fluid py="md">
-      <Group pb="md" position="apart">
+      <Group pb="md" justify="space-between">
         <Group>
           <Button
             onClick={saveReload}
-            disabled={mReload.isLoading || mUpdate.isLoading}
+            disabled={mReload.isPending || mUpdate.isPending}
           >
-            {mUpdate.isLoading
+            {mUpdate.isPending
               ? 'Saving...'
-              : mReload.isLoading
+              : mReload.isPending
               ? 'Reloading...'
               : isEditable
               ? 'Save and apply'
@@ -97,7 +95,7 @@ const ConfigPage = () => {
         onChange={(evt) => setTextContent(evt.currentTarget.value)}
         autosize
         styles={{ input: { fontFamily: 'monospace' } }}
-        disabled={!isEditable || mReload.isLoading || mUpdate.isLoading}
+        disabled={!isEditable || mReload.isPending || mUpdate.isPending}
       />
     </Container>
   );

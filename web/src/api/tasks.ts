@@ -26,9 +26,9 @@ const stateSort: ReturnType<typeof stateKey>[] = [
   'Interrupted',
 ];
 export const useQueryTasks = () =>
-  useQuery(
-    ['tasks'],
-    () =>
+  useQuery({
+    queryKey: ['tasks'],
+    queryFn: () =>
       fetch('/api/tasks')
         .then((res) => res.json())
         .then((res) =>
@@ -38,25 +38,21 @@ export const useQueryTasks = () =>
               stateSort.indexOf(stateKey(b.status.state))
           )
         ),
-    {
-      refetchInterval: 1000,
-      keepPreviousData: true,
-    }
-  );
+    refetchInterval: 1000,
+    gcTime: Infinity,
+  });
 
 export const useMutateCreateTask = () => {
   const queryClient = useQueryClient();
-  return useMutation(
-    (task: CreateTaskRequest) =>
+  return useMutation({
+    mutationFn: (task: CreateTaskRequest) =>
       fetch('/api/task', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(task),
       }).then(rejectError),
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries(['tasks']);
-      },
-    }
-  );
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    },
+  });
 };

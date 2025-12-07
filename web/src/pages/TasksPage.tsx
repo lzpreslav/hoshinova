@@ -7,7 +7,6 @@ import {
   Container,
   Group,
   Image,
-  MediaQuery,
   Select,
   SimpleGrid,
   Stack,
@@ -15,12 +14,13 @@ import {
   Text,
   TextInput,
   Title,
+  Box,
 } from '@mantine/core';
 import React from 'react';
 import { stateString, useMutateCreateTask, useQueryTasks } from '../api/tasks';
 import { TaskWithStatus } from '../bindings/TaskWithStatus';
 import { SuspenseLoader } from '../shared/SuspenseLoader';
-import { IconPlus } from '@tabler/icons';
+import { IconPlus } from '@tabler/icons-react';
 import { closeAllModals, openModal } from '@mantine/modals';
 import { showNotification } from '@mantine/notifications';
 import { useQueryConfig } from '../api/config';
@@ -91,10 +91,10 @@ const AddVideoModal = () => {
 
   React.useEffect(() => {
     if (!qConfig.data) return;
-    const outPaths = new Set(qConfig.data.channel.map((ch) => ch.outpath));
+    const outPaths = new Set((qConfig.data as any).channel.map((ch: any) => ch.outpath));
     if (outPaths.size > destPaths.length) {
       setDestPaths(
-        Array.from(outPaths).map((path) => ({ value: path, label: path }))
+        Array.from(outPaths).map((path) => ({ value: path as string, label: path as string }))
       );
     }
   }, [qConfig, destPaths]);
@@ -102,7 +102,7 @@ const AddVideoModal = () => {
   const addVideo = () => {
     if (!destPath || !videoURL) return;
 
-    mCreateTask.mutateAsync(
+    mCreateTask.mutate(
       {
         video_url: videoURL,
         output_directory: destPath,
@@ -113,6 +113,7 @@ const AddVideoModal = () => {
             message: 'Video added',
             color: 'green',
           });
+          closeAllModals();
         },
         async onError(err) {
           let message = '';
@@ -126,12 +127,10 @@ const AddVideoModal = () => {
         },
       }
     );
-
-    closeAllModals();
   };
 
   return (
-    <Stack spacing="md">
+    <Stack gap="md">
       <TextInput
         label="Video URL"
         placeholder="https://www.youtube.com/watch?v=..."
@@ -144,14 +143,7 @@ const AddVideoModal = () => {
         data={destPaths}
         placeholder="Select a destination path"
         searchable
-        creatable
-        getCreateLabel={(input) => 'Use ' + input}
-        onCreate={(input) => {
-          const item = { value: input, label: input };
-          setDestPaths((now) => [...now, item]);
-          return item;
-        }}
-        onChange={(e) => setDestPath(e)}
+        onChange={(e: string | null) => setDestPath(e)}
       />
       <Button fullWidth onClick={addVideo}>
         Add
@@ -186,7 +178,7 @@ const TasksPage = () => {
           up!
         </Text>
         <Group py="md">
-          <Button leftIcon={<IconPlus size={18} />} onClick={handleAddVideo}>
+          <Button leftSection={<IconPlus size={18} />} onClick={handleAddVideo}>
             Add video
           </Button>
         </Group>
@@ -194,13 +186,13 @@ const TasksPage = () => {
     );
 
   return (
-    <Stack p="md">
-      <Group>
-        <Button leftIcon={<IconPlus size={18} />} onClick={handleAddVideo}>
+    <Stack p="md" gap="md">
+            <Group>
+        <Button leftSection={<IconPlus size={18} />} onClick={handleAddVideo}>
           Add video
         </Button>
       </Group>
-      <MediaQuery smallerThan="md" styles={{ display: 'none' }}>
+      <Box hiddenFrom="md">
         <Table>
           <thead>
             <tr>
@@ -220,16 +212,11 @@ const TasksPage = () => {
             ))}
           </tbody>
         </Table>
-      </MediaQuery>
-      <MediaQuery largerThan="md" styles={{ display: 'none' }}>
+      </Box>
+      <Box visibleFrom="md">
         <SimpleGrid
           spacing="md"
-          cols={2}
-          breakpoints={[
-            { maxWidth: 'md', cols: 3, spacing: 'md' },
-            { maxWidth: 'sm', cols: 2, spacing: 'sm' },
-            { maxWidth: 'xs', cols: 1, spacing: 'sm' },
-          ]}
+          cols={{ base: 1, sm: 2, md: 3 }}
         >
           {tasks.map(({ task, status }) => {
             const [_, title, state, progres] = rowElements({ task, status });
@@ -240,11 +227,11 @@ const TasksPage = () => {
                     <Image fit="cover" width="100%" src={task.video_picture} />
                   </AspectRatio>
                 </Card.Section>
-                <Stack my="lg" spacing="md">
+                <Stack my="lg" gap="md">
                   <div>{title}</div>
                   {state}
                   <div>
-                    <Text weight="bold">Progress</Text>
+                    <Text fw="bold">Progress</Text>
                     {progres}
                   </div>
                 </Stack>
@@ -252,7 +239,7 @@ const TasksPage = () => {
             );
           })}
         </SimpleGrid>
-      </MediaQuery>
+      </Box>
     </Stack>
   );
 };
