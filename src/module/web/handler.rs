@@ -6,17 +6,17 @@ use crate::{
     youtube,
 };
 use actix_web::{
-    error::{ErrorBadRequest, ErrorInternalServerError, ErrorForbidden},
+    error::{ErrorBadRequest, ErrorForbidden, ErrorInternalServerError},
     get, post, put,
     web::{self, Data},
     HttpResponse, Responder,
 };
 use anyhow::anyhow;
+use rust_embed::RustEmbed;
 use serde::Deserialize;
 use std::sync::Arc;
 use tokio::sync::RwLock;
 use ts_rs::TS;
-use rust_embed::RustEmbed;
 
 #[derive(RustEmbed)]
 #[folder = "web/dist"]
@@ -194,10 +194,10 @@ async fn serve_static(path: web::Path<String>) -> impl Responder {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::WebserverConfig;
     use actix_web::{test, App};
     use std::sync::Arc;
     use tokio::sync::RwLock;
-    use crate::config::WebserverConfig;
 
     #[actix_web::test]
     async fn test_put_config_toml_invalid() {
