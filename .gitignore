@@ -1,5 +1,6 @@
 # Local development
 .idea
+.direnv
 /config.toml
 /target
 temp
